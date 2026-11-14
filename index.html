@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>상세페이지 스튜디오 — 쇼핑몰 상세페이지 제작기</title>
+  <meta name="description" content="상품 정보를 채우면 섹션 초안이 자동으로 배치되는 쇼핑몰 상세페이지 제작기. 네이버 860px·쿠팡 1000px 규격 PNG로 내려받는 웹 서비스">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230071e3'/%3E%3Crect x='8' y='6' width='16' height='20' rx='2.5' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M12 12h8M12 16h8M12 20h5' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+  <div id="app">
+    <header id="app-header">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <div class="brand-text">
+          <strong>상세페이지 스튜디오</strong>
+          <small>쇼핑몰 상세페이지 · 네이버 860 / 쿠팡 1000</small>
+        </div>
+      </div>
+      <input id="project-title" class="project-title" spellcheck="false" title="프로젝트 이름" aria-label="프로젝트 이름">
+      <div class="header-actions">
+        <button id="btn-product" class="btn btn-text" title="상품 정보를 채우고 섹션 초안을 자동 생성">상품 정보</button>
+        <button id="btn-theme" class="btn btn-text" title="브랜드·색상·폰트 설정">테마</button>
+        <button id="btn-ai" class="btn btn-text" title="AI 프롬프트로 초안 만들기">AI 초안</button>
+        <span class="v-divider"></span>
+        <button id="btn-json-save" class="btn btn-text" title="프로젝트 JSON 내려받기">JSON 저장</button>
+        <button id="btn-json-load" class="btn btn-text" title="프로젝트 JSON 불러오기">불러오기</button>
+        <span class="v-divider"></span>
+        <button id="btn-png" class="btn" title="선택한 섹션만 PNG로 저장">이 섹션 PNG</button>
+        <button id="btn-zip" class="btn btn-primary" title="전체 이어본 PNG + 섹션별 분할 PNG + 프로젝트 JSON을 ZIP으로">전체 ZIP 다운로드</button>
+      </div>
+    </header>
+    <div id="app-main">
+      <aside id="section-rail" aria-label="섹션 목록"></aside>
+      <main id="preview-pane">
+        <div id="stage-toolbar">
+          <label class="tb-label">규격
+            <select id="width-preset">
+              <option value="860">860px · 네이버</option>
+              <option value="1000">1000px · 쿠팡 등</option>
+              <option value="custom">직접 입력</option>
+            </select>
+          </label>
+          <input id="width-custom" type="number" min="600" max="1400" step="10" hidden aria-label="캔버스 폭 직접 입력">
+          <label class="tb-label">확대
+            <select id="zoom-preset">
+              <option value="fit" selected>맞춤</option>
+              <option value="50">50%</option>
+              <option value="75">75%</option>
+              <option value="100">100%</option>
+            </select>
+          </label>
+          <span id="page-info" class="page-info" title="전체 페이지 크기"></span>
+        </div>
+        <div id="preview-wrap">
+          <div id="page-stack" aria-label="상세페이지 미리보기"></div>
+        </div>
+        <div id="qa-strip" aria-live="polite"></div>
+      </main>
+      <aside id="editor-pane" aria-label="섹션 편집"></aside>
+    </div>
+  </div>
+  <div id="toast-area"></div>
+  <div id="modal-root"></div>
+  <input type="file" id="file-json" accept="application/json,.json" hidden>
+  <script type="module" src="js/app.js?v=a9"></script>
+</body>
+</html>
