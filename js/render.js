@@ -4,7 +4,7 @@
 //  - 텍스트가 넘칠 경우 블록 폰트를 축소(하한 62%)하고, 그래도 넘치면 QA 경고 대상(_overflow)이 된다.
 //  - 섹션 폭은 프로젝트 규격(860/1000/자유)을 따르며, 모든 내부 수치는 s = W/1000 비율로 스케일된다.
 //  - 그리기 순서는 "높이 선계산(measure) → 배경 → 내용"이다. 배경이 내용을 덮지 않게.
-import { font } from './fonts.js';
+import { font, stackFor } from './fonts.js';
 import { clamp, rgba, mixHex, lumDist } from './util.js';
 import { AUTO_TONE } from './sections.js';
 
@@ -73,8 +73,8 @@ function drawCover(ctx, img, x, y, w, h) {
 }
 
 // 줄 배열 블록 폭 맞춤: 블록 전체 폰트를 축소한다. returns { size, overflow }
-export function fitBlock(ctx, F, lines, weight, size, maxW, minScale = MIN_SCALE) {
-  ctx.font = font(F, weight, size);
+export function fitBlock(ctx, F, lines, weight, size, maxW, minScale = MIN_SCALE, area = 'body') {
+  ctx.font = font(F, weight, size, area);
   let widest = 0;
   for (const l of lines) widest = Math.max(widest, ctx.measureText(l).width);
   if (widest <= maxW || !lines.length) return { size, overflow: false };
@@ -99,8 +99,8 @@ function drawLines(ctx, F, lines, opts) {
   } = opts;
   const shown = (lines || []).slice(0, maxLines);
   if (!shown.length) return { bottom: y, overflow: false };
-  const fit = fitBlock(ctx, F, shown, weight, size, maxW);
-  ctx.font = font(F, weight, fit.size);
+  const fit = fitBlock(ctx, F, shown, weight, size, maxW, MIN_SCALE, opts.area || 'body');
+  ctx.font = font(F, weight, fit.size, opts.area || 'body');
   ctx.fillStyle = color;
   ctx.textAlign = align;
   ctx.textBaseline = 'top';
@@ -116,7 +116,7 @@ function drawLines(ctx, F, lines, opts) {
 
 // 자간 넓은 텍스트 (kicker). returns 오른쪽 끝 x
 function drawSpaced(ctx, F, text, x, y, spacing, weight, size, color) {
-  ctx.font = font(F, weight, size);
+  ctx.font = font(F, weight, size, 'aux');
   ctx.fillStyle = color;
   ctx.textBaseline = 'top';
   ctx.textAlign = 'left';
@@ -129,7 +129,7 @@ function drawSpaced(ctx, F, text, x, y, spacing, weight, size, color) {
 }
 
 function spacedWidth(ctx, F, text, spacing, weight, size) {
-  ctx.font = font(F, weight, size);
+  ctx.font = font(F, weight, size, 'aux');
   let total = 0;
   for (const ch of text) total += ctx.measureText(ch).width + spacing;
   return total - spacing;
@@ -139,7 +139,7 @@ function spacedWidth(ctx, F, text, spacing, weight, size) {
 function drawPill(ctx, F, text, opt = {}) {
   if (!text) return { bottom: opt.y || 0, w: 0, h: 0 };
   const size = opt.size || 26;
-  ctx.font = font(F, 700, size);
+  ctx.font = font(F, 700, size, 'aux');
   const tw = ctx.measureText(text).width;
   const padX = opt.padX || 24;
   const h = opt.h || 52;
@@ -240,7 +240,7 @@ function drawPlaceholder(env, x, y, w, h, small = false) {
   ctx.beginPath();
   ctx.arc(cx, cy + 3 * u * s, 8 * u * s, 0, Math.PI * 2);
   ctx.fill();
-  ctx.font = font(F, 500, 24 * s);
+  ctx.font = font(F, 500, 24 * s, 'aux');
   ctx.textBaseline = 'top';
   ctx.textAlign = 'center';
   ctx.fillText('이미지를 추가하세요', cx, cy + gh / 2 + 14 * s);
@@ -271,7 +271,8 @@ function makeEnv(ctx, P, sec, index) {
   const W = P.width;
   const s = W / BASE_W;
   const accent = P.theme.accent || '#0071e3';
-  const F = P.theme.font || 'gmarket';
+  const fk = (a) => (P.theme.fonts && P.theme.fonts[a]) || (P.theme.font === 'system' ? 'system' : 'gmarket');
+  const F = { title: stackFor(fk('title')), body: stackFor(fk('body')), aux: stackFor(fk('aux')) };
   const tone = sec.tone && sec.tone !== 'auto' ? sec.tone : (AUTO_TONE[sec.type] || 'white');
   // 배경 (옵트인) — 히어로는 media가 곧 배경이므로 제외
   const bgOn = sec.type !== 'hero' && !!sec.bgOn;
@@ -386,7 +387,7 @@ function measureHeader(env, { kicker, title }) {
   if (kicker) y += 30 * s + 14 * s;
   if (title) {
     const lines = (Array.isArray(title) ? title : [title]).slice(0, 2);
-    const r = fitBlock(ctx, F, lines, 700, 46 * s, W - 2 * mx);
+    const r = fitBlock(ctx, F, lines, 700, 46 * s, W - 2 * mx, MIN_SCALE, 'title');
     overflow = overflow || r.overflow;
     y = y + lines.length * r.size * 1.26 + 40 * s;
   }
@@ -407,7 +408,7 @@ function drawHeader(env, { kicker, title, align = 'left' }) {
   }
   if (title) {
     const lines = (Array.isArray(title) ? title : [title]).slice(0, 2);
-    const r = drawLines(ctx, F, lines, {
+    const r = drawLines(ctx, F, lines, { area: 'title',
       x: mx, y, W, weight: 700, size: 46 * s, color: T.ink, lh: 1.26,
       maxW: W - 2 * mx, align, maxLines: 2,
     });
@@ -427,7 +428,7 @@ function drawBrandChip(env, onDark) {
   ctx.beginPath();
   ctx.arc(env.mx + 8 * s, y + 15 * s, 8 * s, 0, Math.PI * 2);
   ctx.fill();
-  ctx.font = font(F, 700, 28 * s);
+  ctx.font = font(F, 700, 28 * s, 'title');
   ctx.fillStyle = onDark ? 'rgba(255,255,255,0.95)' : '#1D1D1F';
   ctx.textBaseline = 'top';
   ctx.fillText(name, env.mx + 28 * s, y);
@@ -461,7 +462,7 @@ function rHero(env) {
         drawPill(ctx, F, sec.badge, { x: mx, y, size: 25 * s, h: 50 * s, fill: accent });
         y += b.h + b.gap;
       } else if (b.kind === 'title') {
-        const r = drawLines(ctx, F, sec.title, { x: mx, y, W, weight: 700, size: 60 * s, color: '#FFFFFF', lh: 1.18, maxW: W - 2 * mx, maxLines: 3 });
+        const r = drawLines(ctx, F, sec.title, { area: 'title', x: mx, y, W, weight: 700, size: 60 * s, color: '#FFFFFF', lh: 1.18, maxW: W - 2 * mx, maxLines: 3 });
         sec._overflow = sec._overflow || r.overflow;
         y += b.h + b.gap;
       } else {
@@ -492,7 +493,7 @@ function rHero(env) {
     const r = drawPill(ctx, F, sec.badge, { center: W / 2, y, size: 25 * s, h: 50 * s, fill: accent, outline: true });
     y = r.bottom + 34 * s;
   }
-  const r = drawLines(ctx, F, sec.title, { x: mx, y, W, weight: 700, size: 56 * s, color: env.T.ink, lh: 1.2, maxW: W - 2 * mx, align: 'center', maxLines: 3 });
+  const r = drawLines(ctx, F, sec.title, { area: 'title', x: mx, y, W, weight: 700, size: 56 * s, color: env.T.ink, lh: 1.2, maxW: W - 2 * mx, align: 'center', maxLines: 3 });
   sec._overflow = sec._overflow || r.overflow;
   y = r.bottom + 24 * s;
   if (sec.body.length) {
@@ -518,7 +519,7 @@ function rProblem(env) {
   drawSpaced(ctx, F, sec.kicker.toUpperCase(), W / 2 - tw / 2, y, sp, 700, 26 * s, accentText);
   y += 30 * s + 20 * s;
 
-  const r = drawLines(ctx, F, titleLines.length ? titleLines : [' '], {
+  const r = drawLines(ctx, F, titleLines.length ? titleLines : [' '], { area: 'title',
     x: mx, y, W, weight: 700, size: 50 * s, color: T.ink, lh: 1.26, maxW: W - 2 * mx, align: 'center', maxLines: 2,
   });
   sec._overflow = sec._overflow || r.overflow;
@@ -562,7 +563,7 @@ function rSolution(env) {
     const r = drawPill(ctx, F, sec.badge, { center: W / 2, y, size: 25 * s, h: 52 * s, fill: accent });
     y = r.bottom + 40 * s;
   }
-  const r = drawLines(ctx, F, sec.title, { x: mx, y, W, weight: 700, size: 52 * s, color: T.ink, lh: 1.24, maxW: W - 2 * mx, align: 'center', maxLines: 2 });
+  const r = drawLines(ctx, F, sec.title, { area: 'title', x: mx, y, W, weight: 700, size: 52 * s, color: T.ink, lh: 1.24, maxW: W - 2 * mx, align: 'center', maxLines: 2 });
   sec._overflow = sec._overflow || r.overflow;
   y = r.bottom + 26 * s;
   if (bodyN) {
@@ -610,15 +611,15 @@ function rFeatures(env) {
     ctx.beginPath();
     ctx.arc(x + 24 * s + chip / 2, y + 24 * s + chip / 2, chip / 2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.font = font(F, 700, 25 * s);
+    ctx.font = font(F, 700, 25 * s, 'aux');
     ctx.fillStyle = '#FFFFFF';
     ctx.textBaseline = 'top';
     const num = String(i + 1);
     ctx.fillText(num, x + 24 * s + (chip - ctx.measureText(num).width) / 2, y + 24 * s + (chip - 25 * s) / 2 + 1);
     const tMaxW = colW - 48 * s - chip - 16 * s;
-    const tFit = fitBlock(ctx, F, [it.title || ' '], 700, 31 * s, tMaxW);
+    const tFit = fitBlock(ctx, F, [it.title || ' '], 700, 31 * s, tMaxW, MIN_SCALE, 'title');
     if (tFit.overflow) sec._overflow = true;
-    ctx.font = font(F, 700, tFit.size);
+    ctx.font = font(F, 700, tFit.size, 'title');
     ctx.fillStyle = T.ink;
     ctx.fillText(clipLine(ctx, it.title || '', tMaxW), x + 24 * s + chip + 16 * s, y + 24 * s + (chip - tFit.size) / 2);
     if (it.desc) {
@@ -692,7 +693,7 @@ function rHowto(env) {
     roundRect(ctx, mx, y + (rowH - chip) / 2, chip, chip, 18 * s);
     ctx.fillStyle = accent;
     ctx.fill();
-    ctx.font = font(F, 700, 26 * s);
+    ctx.font = font(F, 700, 26 * s, 'aux');
     ctx.fillStyle = '#FFFFFF';
     ctx.textBaseline = 'top';
     const num = String(i + 1);
@@ -700,7 +701,7 @@ function rHowto(env) {
 
     const tx = mx + chip + 30 * s;
     const maxW = W - mx - tx;
-    ctx.font = font(F, 700, 32 * s);
+    ctx.font = font(F, 700, 32 * s, 'title');
     ctx.fillStyle = T.ink;
     const title = ctx.measureText(it.text || '').width > maxW ? clipLine(ctx, it.text || '', maxW) : (it.text || '');
     if (title !== it.text) sec._overflow = true;
@@ -783,7 +784,7 @@ function rPackages(env) {
       ctx.lineWidth = 3 * s;
       ctx.stroke();
       // '가장 인기' 배지 (카드 상단 중앙)
-      ctx.font = font(F, 700, 22 * s);
+      ctx.font = font(F, 700, 22 * s, 'aux');
       const bw = ctx.measureText('가장 인기').width + 36 * s;
       roundRect(ctx, x + colW / 2 - bw / 2, y + 20 * s, bw, 44 * s, 22 * s);
       ctx.fillStyle = accent;
@@ -797,9 +798,9 @@ function rPackages(env) {
     // 배지 행(68s)은 강조 여부와 무관하게 모든 카드가 예약해 열이 정렬되게 한다
     const r1 = drawLines(ctx, F, [it.name || ''], { x, y: y + 84 * s, W: cardCx, weight: 700, size: 30 * s, color: T.ink, maxW: colW - 40 * s, align: 'center' });
     if (r1.overflow) sec._overflow = true;
-    const priceFit = fitBlock(ctx, F, [it.price || ''], 700, 40 * s, colW - 36 * s);
+    const priceFit = fitBlock(ctx, F, [it.price || ''], 700, 40 * s, colW - 36 * s, MIN_SCALE, 'title');
     if (priceFit.overflow) sec._overflow = true;
-    ctx.font = font(F, 700, priceFit.size);
+    ctx.font = font(F, 700, priceFit.size, 'title');
     ctx.fillStyle = hl ? accent : T.ink;
     ctx.textAlign = 'center';
     ctx.fillText(priceFit.overflow ? clipLine(ctx, it.price || '', colW - 36 * s) : (it.price || ''), x + colW / 2, r1.bottom + 12 * s);
@@ -865,7 +866,7 @@ function rComparison(env) {
       ctx.stroke();
     }
     const label = (p.label || '').toUpperCase() || (p.isA ? 'BEFORE' : 'AFTER');
-    ctx.font = font(F, 700, 23 * s);
+    ctx.font = font(F, 700, 23 * s, 'aux');
     const lw = ctx.measureText(label).width + 40 * s;
     ctx.fillStyle = p.isA ? (T.onDark ? 'rgba(245,245,247,0.16)' : 'rgba(29,29,31,0.10)') : accent;
     roundRect(ctx, p.x + 24 * s, head.y + 24 * s, lw, 46 * s, 23 * s);
@@ -919,7 +920,7 @@ function rReview(env) {
     ctx.font = font(F, 500, tFit.size);
     ctx.fillStyle = T.ink;
     ctx.fillText(tFit.overflow ? clipLine(ctx, it.text || '', maxW) : (it.text || ''), mx + 30 * s, y + 74 * s);
-    ctx.font = font(F, 500, 24 * s);
+    ctx.font = font(F, 500, 24 * s, 'aux');
     ctx.fillStyle = T.faint;
     const name = it.name ? `${it.name} 님` : '';
     const nw = ctx.measureText(name).width;
@@ -970,13 +971,13 @@ function rFaq(env) {
     ctx.beginPath();
     ctx.arc(mx + chip / 2, y + chip / 2, chip / 2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.font = font(F, 700, 24 * s);
+    ctx.font = font(F, 700, 24 * s, 'aux');
     ctx.fillStyle = '#FFFFFF';
     ctx.textBaseline = 'top';
     ctx.fillText('Q', mx + chip / 2 - ctx.measureText('Q').width / 2, y + (chip - 24 * s) / 2 + 1);
-    const qFit = fitBlock(ctx, F, [it.q || ' '], 700, qSize, qMaxW);
+    const qFit = fitBlock(ctx, F, [it.q || ' '], 700, qSize, qMaxW, MIN_SCALE, 'title');
     if (qFit.overflow) sec._overflow = true;
-    ctx.font = font(F, 700, qFit.size);
+    ctx.font = font(F, 700, qFit.size, 'title');
     ctx.fillStyle = T.ink;
     ctx.fillText(qFit.overflow ? clipLine(ctx, it.q || '', qMaxW) : (it.q || ''), mx + chip + 20 * s, y + (chip - qFit.size) / 2);
     y += chip + 14 * s;
@@ -1005,9 +1006,9 @@ function rCertification(env) {
     const y = head.y + i * (rowH + gap);
     drawCheckCircle(ctx, mx + 26 * s, y + rowH / 2, 26 * s, accent);
     const maxW = W - 2 * mx - 80 * s;
-    const tFit = fitBlock(ctx, F, [it.title || ' '], 700, 30 * s, maxW);
+    const tFit = fitBlock(ctx, F, [it.title || ' '], 700, 30 * s, maxW, MIN_SCALE, 'title');
     if (tFit.overflow) sec._overflow = true;
-    ctx.font = font(F, 700, tFit.size);
+    ctx.font = font(F, 700, tFit.size, 'title');
     ctx.fillStyle = T.ink;
     ctx.fillText(clipLine(ctx, it.title || '', maxW), mx + 80 * s, y + (it.desc ? 20 : 38) * s);
     if (it.desc) {
@@ -1039,9 +1040,9 @@ function rNotice(env) {
     ctx.fillStyle = accentText;
     roundRect(ctx, mx + 2 * s, y + 14 * s, 11 * s, 11 * s, 3 * s);
     ctx.fill();
-    const tFit = fitBlock(ctx, F, [it.title || ' '], 700, 28 * s, maxW);
+    const tFit = fitBlock(ctx, F, [it.title || ' '], 700, 28 * s, maxW, MIN_SCALE, 'title');
     if (tFit.overflow) sec._overflow = true;
-    ctx.font = font(F, 700, tFit.size);
+    ctx.font = font(F, 700, tFit.size, 'title');
     ctx.fillStyle = T.ink;
     ctx.fillText(clipLine(ctx, it.title || '', maxW), mx + 34 * s, y + 4 * s);
     if (it.desc) {
@@ -1087,7 +1088,7 @@ function rCta(env) {
     y += 48 * s;
   }
   if (sec.action) {
-    ctx.font = font(F, 700, 34 * s);
+    ctx.font = font(F, 700, 34 * s, 'title');
     const tw = ctx.measureText(sec.action).width;
     const bw = tw + 110 * s;
     const bh = 92 * s;
@@ -1114,7 +1115,7 @@ function rDisclaimer(env) {
   fillBg(env, H);
 
   let y = 64 * s;
-  ctx.font = font(F, 700, 24 * s);
+  ctx.font = font(F, 700, 24 * s, 'aux');
   ctx.fillStyle = T.sub;
   ctx.textBaseline = 'top';
   ctx.fillText('유의사항', mx, y);
@@ -1122,7 +1123,7 @@ function rDisclaimer(env) {
   for (const it of items) {
     const fit = fitBlock(ctx, F, [it], 300, 24 * s, W - 2 * mx);
     if (fit.overflow) sec._overflow = true;
-    ctx.font = font(F, 300, fit.size);
+    ctx.font = font(F, 300, fit.size, 'body');
     ctx.fillStyle = T.faint;
     ctx.fillText(clipLine(ctx, it, W - 2 * mx), mx, y);
     y += 40 * s;
@@ -1135,7 +1136,7 @@ function rDisclaimer(env) {
   ctx.lineTo(W - mx, y + 0.5);
   ctx.stroke();
   y += 22 * s;
-  ctx.font = font(F, 500, 22 * s);
+  ctx.font = font(F, 500, 22 * s, 'aux');
   ctx.fillStyle = T.faint;
   ctx.fillText(brand || '상세페이지 스튜디오', mx, y);
   const right = '문의: 판매자 페이지 확인';

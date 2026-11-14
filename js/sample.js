@@ -1,39 +1,41 @@
 // sample.js — 데모용 샘플 프로젝트 (새 사용자 최초 진입 시 로드)
+// 제품 샘플: 무선 미니 블렌더 / 서비스 샘플: 쇼핑몰 상세페이지 제작 대행
 import { buildDraft, blankSection } from './sections.js';
 
 const SAMPLE_PRODUCT = {
-  name: '포켓 미니 청소기 에어리',
-  category: '생활가전',
-  tagline: '한 손에 쏙, 데스크 위 먼지는 3초면 끝',
+  name: '무선 미니 블렌더 포드믹스',
+  category: '주방가전',
+  tagline: '컵째로 블렌딩하고, 뚜껑 열어 한 모금 — 30초면 완성',
   features: [
-    '3초 강력 흡입|과자 부스러기도 한 번에 빨아들이는 8kPa 흡입력',
-    '160g 초경량|커피보다 가벼운 무게로 한 손에 들어옵니다',
-    'USB-C 충전|2시간 충전으로 3주 사용',
-    '세척 간편|투명 먼지통 분리 후 물세척',
+    '6날 스테인리스 블레이드|얼음도 가는 25,000rpm 분쇄력',
+    '350ml 트리툼 컵|컵이 그대로 텀블러, 뚜껑 끼우고 바로 이동',
+    'USB-C 무선 충전|1회 충전으로 약 15회 블렌딩',
+    '원터치 30초|버튼 2회 연속 누르면 자동으로 30초 작동',
   ],
   steps: [
-    '먼지통 확인|투명 커버로 잔량을 바로 확인하세요',
-    '전원 ON|버튼을 2초 길게 누르면 강력 모드',
-    '틈새 청소|노즐을 끼워 키보드 틈도 청소',
-    '물세척|먼지통을 분리해 흐르는 물에 세척',
+    '재료 넣기|과일·우유·얼음을 컵 2/3 아래까지',
+    '컵 결합|뚜껑(블레이드 뚜껑)을 시계 방향으로 잠금',
+    '블렌딩|본체를 뒤집어 버튼 2회 연타 — 30초 자동',
+    '바로 마시기|본체만 분리하고 뚜껑 교체 후 이동',
   ],
   specs: [
-    '구성품|본체, 노즐 2종, 브러시, USB-C 케이블',
-    '크기|168 × 96 × 52 mm',
-    '무게|160 g',
-    '흡입력|최대 8kPa',
-    '배터리|2,000 mAh (연속 25분)',
-    '충전|USB-C, 약 2시간',
+    '구성품|본체, 컵 350ml, 블레이드 뚜껑, 이동용 뚜껑, 브러시, USB-C 케이블',
+    '용량|350 ml (실사용 300 ml)',
+    '모터|25,000 rpm / 45 W',
+    '배터리|4,000 mAh (약 15회 블렌딩)',
+    '크기|105 × 105 × 225 mm',
+    '무게|본체 190 g + 컵 130 g',
+    '충전|USB-C, 약 2시간 30분',
   ],
   reviews: [
-    '김서연|5|기대 이상이에요. 책상 위 부스러기가 정말 3초 만에 사라집니다.',
-    '박지훈|5|차 안에 두고 쓰는데 자석처럼 손이 갑니다. 가벼워요.',
-    '이수진|4|소음이 생각보다 있지만 성능은 만족합니다.',
+    '정하린|5|아침마다 스무디 만드는데 설거지 거의 없어서 좋아요. 얼음도 잘 갈립니다.',
+    '오세훈|5|헬스장 다닐 때 들고 다니는데 진짜 실용적이에요. 냄새도 안 배어요.',
+    '유지민|4|부드러운 스무디는 완벽한데 아이스박스 좀 남아요. 그래도 만족합니다.',
   ],
   faqs: [
-    '배송은 얼마나 걸리나요?|영업일 기준 1~3일 내에 발송됩니다.',
-    '필터는 교체해야 하나요?|헤파 필터는 물세척 후 반영구 사용 가능합니다.',
-    '충전기는 별도인가요?|USB-C 케이블이 포함되어 있어 스마트폰 충전기로 충전됩니다.',
+    '뜨거운 음료도 가능한가요?|고온 액체는 사용하지 마세요. 60℃ 이하의 미지근한 액체만 가능합니다.',
+    '분쇄가 안 될 때는?|재료를 너무 꽉 채우지 말고(2/3 이하) 액체를 먼저 넣어 주세요.',
+    '세척은 어떻게 하나요?|컵에 물과 세제를 넣고 버튼을 눌러 자동 세척 후 헹구면 끝납니다.',
   ],
   notices: [
     '배송|영업일 오후 2시 이전 주문 시 당일 발송',
@@ -42,27 +44,27 @@ const SAMPLE_PRODUCT = {
   ],
   warnings: [
     '본 상세페이지의 이미지는 실제 제품과 다소 차이가 있을 수 있습니다.',
-    '제품 색상은 모니터 환경에 따라 다르게 보일 수 있습니다.',
-    '사이즈는 측정 방법에 따라 1~3cm의 오차가 있을 수 있습니다.',
+    '뜨거운 액체·탄산음료·건조 재료 장시간 분쇄는 제품 손상의 원인이 됩니다.',
+    '본체 충전 중에는 블렌딩을 사용할 수 없습니다.',
   ],
 };
 
 export function sampleProject() {
-  const sections = buildDraft(SAMPLE_PRODUCT, 'feature', '에어리랩');
+  const sections = buildDraft(SAMPLE_PRODUCT, 'empath', '포드믹스');
 
   // 사용법 뒤에 갤러리·비교 섹션을 끼워 넣어 풀 구성 시연
-  const gallery = { ...blankSection('gallery'), kicker: 'GALLERY', title: '이렇게 쓰입니다', images: [null, null, null, null] };
-  const compare = { ...blankSection('comparison'), kicker: 'BEFORE · AFTER', title: '청소가 이렇게 달라집니다' };
+  const gallery = { ...blankSection('gallery'), kicker: 'GALLERY', title: '이렇게 활용됩니다', images: [null, null, null, null] };
+  const compare = { ...blankSection('comparison'), kicker: 'BEFORE · AFTER', title: '아침이 이렇게 달라집니다' };
   const howtoIdx = sections.findIndex((s) => s.type === 'howto');
   const at = howtoIdx >= 0 ? howtoIdx + 1 : sections.length - 1;
   sections.splice(at, 0, gallery, compare);
 
   return {
     version: 1,
-    title: '포켓 미니 청소기 상세페이지',
-    brand: { name: '에어리랩', logo: null },
+    title: '무선 미니 블렌더 상세페이지',
+    brand: { name: '포드믹스', logo: null },
     product: { ...SAMPLE_PRODUCT },
-    theme: { accent: '#0071e3', font: 'gmarket' },
+    theme: { accent: '#0071e3', fonts: { title: 'gmarket', body: 'gmarket', aux: 'gmarket' } },
     width: 1000,
     sections,
   };
@@ -79,7 +81,7 @@ export function emptyProject() {
       name: '', category: '', tagline: '',
       features: [], steps: [], specs: [], packages: [], certifications: [], reviews: [], faqs: [], notices: [], warnings: [],
     },
-    theme: { accent: '#0071e3', font: 'gmarket', copyTone: 'feature' },
+    theme: { accent: '#0071e3', fonts: { title: 'gmarket', body: 'gmarket', aux: 'gmarket' }, copyTone: 'feature' },
     width: 1000,
     sections: [blankSection('hero')],
   };
@@ -88,45 +90,45 @@ export function emptyProject() {
 // 서비스(무형상품) 샘플 — 크몽 관습: 패키지 3단 · 진행 프로세스 · 포함 내역 · 자격·경력
 export function sampleServiceProject() {
   const product = {
-    name: '브랜드 로고 · BI 디자인',
+    name: '쇼핑몰 상세페이지 제작',
     category: '디자인',
-    tagline: '당일 시안, 만족할 때까지 수정',
+    tagline: '전환율을 노린 구성, 3영업일 내 납품',
     features: [
-      '당일 시안|오후 문의 시 당일 시안 제안',
-      '무제한 수정|프리미엄 한정, 만족할 때까지',
-      '원본 파일|AI·SVG·PNG 전부 납품',
-      '상위 2% 전문가|크몽 PRIME 공식 인증',
+      '판매 유도 구성|히어로→공감→해결→증거 표준 흐름으로 전환율 설계',
+      '모바일 최적화|네이버·쿠팡 규격(860/1000px) 그대로 납품',
+      '카피 전문|특징 나열이 아닌 구매 이유를 만드는 문구',
+      '수정 3회|납품 후 2주 이내 자유 수정',
     ],
     steps: [
-      '문의|브랜드와 방향을 공유',
-      '시안|1~3안 제안',
-      '수정|피드백 반영',
-      '납품|원본 파일 전달',
+      '히어링|제품·타깃·경쟁 정보 수집',
+      '구성|판매 흐름에 맞춘 섹션 설계',
+      '제작|카피·디자인 시안 1차 전달',
+      '납품|수정 반영 후 최종 파일·이미지 전달',
     ],
     specs: [
-      '납품 파일|AI·SVG·PNG·JPG 전부',
-      '제작 기간|1~3일 (당일 가능)',
-      '소통|채팅 상시 공유',
-      '수정|패키지별 상이',
+      '낡품 파일|PNG(섹션별·전체), 편집용 원본 선택 가능',
+      '제작 기간|3~5영업일 (급행 별도 협의)',
+      '규격|네이버 860px / 쿠팡 1000px / 직접 지정',
+      '수정|납품 후 2주 이내 3회',
     ],
     packages: [
-      '기본|50,000원|텍스트 로고 1안|로고 1안,PNG·JPG 납품',
-      '표준|150,000원|가장 많이 선택|로고 3안,수정 3회,원본 파일(AI·SVG)',
-      '프리미엄|320,000원|브랜드 올인원|로고 5안,무제한 수정,명함·서식 적용',
+      '기본|150,000원|8개 섹션 표준 구성|히어로,특징,사용법,스펙,CTA',
+      '표준|280,000원|가장 많이 선택|12개 섹션,리뷰·FAQ 포함,수정 3회',
+      '프리미엄|450,000원|이미지·카피 올인원|15개 섹션,카디션 카피,후기 정리,수정 5회',
     ],
     certifications: [
-      '컬러리스트 국가자격|산업기사 취득',
-      '크몽 어워즈 3년 연속 수상|디자인 부문',
+      '올해의 디자인 대상|이커머스 부문 수상',
+      '누적 제작 200건 이상|쇼핑몰 상세페이지 전문',
     ],
     reviews: [
-      '김OO|5|하루 만에 시안이 나왔어요. 방향 잡기 너무 좋았습니다.',
-      '박OO|5|수정도 빠르고 친절해요. 원본까지 받아서 만족합니다.',
-      '이OO|4|가성비 최고예요. 재문의 예정입니다.',
+      '김OO|5|구성이 판매 로직이라 그런지 바로 주문이 붙었어요. 재의뢰합니다.',
+      '박OO|5|수정 요청을 정리해서 주니 한 번에 반영해 주셨어요.',
+      '이OO|4|일정보다 하루 늦게 받았지만 퀄리티는 만족합니다.',
     ],
     faqs: [
-      '작업 과정은 어떻게 되나요?|문의 → 히어링 → 시안 → 수정 → 납품 순으로 진행됩니다.',
-      '수정은 몇 번 가능한가요?|패키지별로 정해져 있으며, 프리미엄은 무제한입니다.',
-      '당일 제작도 가능한가요?|오후 문의 시 당일 시안 제안이 가능합니다.',
+      '이미지는 어떻게 하나요?|제품 사진을 받아 보정·보완해 사용합니다. 촬영이 필요하면 별도 협의됩니다.',
+      '몇 개 섹션으로 구성되나요?|패키지별 8~15개이며 제품 특성에 따라 조정됩니다.',
+      '수정은 어떤 범위인가요?|카피·레이아웃 조정은 포함이며, 신규 섹션 추가는 별도 견적입니다.',
     ],
     notices: [
       '수정 및 재진행|패키지별 제공 횟수 내 무료',
@@ -142,12 +144,12 @@ export function sampleServiceProject() {
 
   return {
     version: 1,
-    title: '브랜드 로고 디자인 서비스 상세페이지',
+    title: '상세페이지 제작 서비스 상세페이지',
     type: 'service',
-    brand: { name: '로고랩', logo: null },
+    brand: { name: '페이지랩', logo: null },
     product,
-    theme: { accent: '#5e5ce6', font: 'gmarket', copyTone: 'premium' },
+    theme: { accent: '#5e5ce6', fonts: { title: 'gmarket', body: 'gmarket', aux: 'gmarket' }, copyTone: 'premium' },
     width: 1000,
-    sections: buildDraft(product, 'premium', '로고랩', 'service'),
+    sections: buildDraft(product, 'premium', '페이지랩', 'service'),
   };
 }

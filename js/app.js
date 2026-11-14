@@ -1,11 +1,11 @@
 // app.js — 상세페이지 스튜디오 메인 애플리케이션
-import { loadFonts } from './fonts.js';
-import { store, clampW } from './store.js';
-import { SECTION_TYPES, TYPE_NAME, buildDraft } from './sections.js';
-import { ensureImages, renderSectionCanvas, LIMITS } from './render.js';
-import { runQA } from './qa.js';
-import { exportSectionPNG, exportZip, exportProjectJSON } from './export.js';
-import { sampleProject, sampleServiceProject, emptyProject } from './sample.js';
+import { loadFonts, ensureProjectFonts, FAMILIES } from './fonts.js?v=f1';
+import { store, clampW } from './store.js?v=f1';
+import { SECTION_TYPES, TYPE_NAME, buildDraft } from './sections.js?v=f1';
+import { ensureImages, renderSectionCanvas, LIMITS } from './render.js?v=f1';
+import { runQA } from './qa.js?v=f1';
+import { exportSectionPNG, exportZip, exportProjectJSON } from './export.js?v=f1';
+import { sampleProject, sampleServiceProject, emptyProject } from './sample.js?v=f1';
 import { loadAIConfig, saveAIConfig, aiConfigured, aiChat, AI_PROVIDERS, generateSection } from './ai.js';
 import { normalizeImage, log } from './util.js';
 
@@ -82,7 +82,7 @@ async function repaint({ editor = false } = {}) {
 
 function sectionSig(P, sec) {
   return [
-    P.width, P.theme.accent, P.theme.font, P.brand && P.brand.name,
+    P.width, P.theme.accent, JSON.stringify(P.theme.fonts || P.theme.font), P.brand && P.brand.name,
     sec.type, sec.tone, JSON.stringify(sec),
   ].join('§');
 }
@@ -92,7 +92,7 @@ function renderStage() {
   const P = store.project;
   const stack = $('#page-stack');
   heights.length = P.sections.length; // 섹션 수가 줄었을 때 stale 높이가 합산되지 않게
-  const key = P.sections.map((s) => s.id).join(',') + '|' + P.width + '|' + P.theme.accent + '|' + P.theme.font;
+  const key = P.sections.map((s) => s.id).join(',') + '|' + P.width + '|' + P.theme.accent + '|' + JSON.stringify(P.theme.fonts || P.theme.font);
   if (key !== stageKey) {
     stageKey = key;
     stack.innerHTML = '';
@@ -136,7 +136,7 @@ function updatePageInfo() {
 function renderRail() {
   const P = store.project;
   const rail = $('#section-rail');
-  const key = P.sections.map((s) => s.id).join(',') + '|' + P.width + '|' + P.theme.accent + '|' + P.theme.font;
+  const key = P.sections.map((s) => s.id).join(',') + '|' + P.width + '|' + P.theme.accent + '|' + JSON.stringify(P.theme.fonts || P.theme.font);
   if (key !== railKey) {
     railKey = key;
     rail.innerHTML = '';
@@ -933,17 +933,28 @@ function openTheme() {
     colorInput.addEventListener('input', () => { store.update((p) => { p.theme.accent = colorInput.value; }); rebuildSwatches(); });
     rebuildSwatches();
 
-    const fontSel = el('select', {},
-      el('option', { value: 'gmarket' }, 'Gmarket Sans (번들)'),
-      el('option', { value: 'system' }, '시스템 기본'),
-    );
-    fontSel.value = P.theme.font;
-    fontSel.addEventListener('change', () => store.update((p) => { p.theme.font = fontSel.value; }));
+    // 영역별 폰트 선택 (전부 SIL OFL — 상업적 이용 가능, 카드뉴스 스튜디오와 동일 5종)
+    const mkFontSel = (areaKey) => {
+      const sel = el('select', {}, Object.entries(FAMILIES).map(([k, f]) => el('option', { value: k }, f.label)));
+      sel.value = (P.theme.fonts && P.theme.fonts[areaKey]) || 'gmarket';
+      sel.addEventListener('change', () => store.update((p) => {
+        if (!p.theme.fonts) p.theme.fonts = {};
+        p.theme.fonts[areaKey] = sel.value;
+      }));
+      return sel;
+    };
+    const fTitle = mkFontSel('title');
+    const fBody = mkFontSel('body');
+    const fAux = mkFontSel('aux');
 
     box.append(
       el('div', { class: 'field' }, el('label', {}, '브랜드명'), brandName),
       el('div', { class: 'field' }, el('label', {}, '브랜드 색 (액센트)'), colorInput, swatches),
-      el('div', { class: 'field' }, el('label', {}, '폰트'), fontSel),
+      el('div', { class: 'form-grid' },
+        el('div', { class: 'field' }, el('label', {}, '제목 폰트'), fTitle),
+        el('div', { class: 'field' }, el('label', {}, '본문·항목 폰트'), fBody),
+        el('div', { class: 'field' }, el('label', {}, '보조 폰트 (킥커·배지·푸터)'), fAux),
+      ),
       el('div', { class: 'modal-actions' },
         el('button', { class: 'btn btn-danger-ghost', onclick: () => {
           if (!confirm('빈 상품 정보로 초기화합니다. 현재 작업은 사라집니다. 계속할까요?')) return;
@@ -1183,6 +1194,7 @@ function wireStore() {
   store.on('project', async () => {
     const P = store.project;
     await ensureImages(P);
+    await ensureProjectFonts(P); // 선택 폰트 지연 로드 — 캔버스 렌더 전 보장
     renderStage();
     qaResult = runQA(P, heights);
     renderRail();

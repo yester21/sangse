@@ -1,8 +1,10 @@
 // store.js — 프로젝트 상태 + 이벤트 버스 + localStorage 자동저장 (cardnews-studio Store 이식)
 import { uid } from './util.js';
+import { FONT_KEYS } from './fonts.js';
 import { blankSection, SECTION_TYPES } from './sections.js';
 
 const STORAGE_KEY = 'detail-studio-v1';
+const normFont = (v) => (FONT_KEYS.includes(v) ? v : 'gmarket');
 
 class Store {
   constructor() {
@@ -170,7 +172,13 @@ export function normalizeProject(input) {
     product: normalizeProduct(p.product),
     theme: {
       accent: /^#[0-9a-fA-F]{6}$/.test((p.theme && p.theme.accent) || '') ? p.theme.accent : '#0071e3',
+      // 이전 단일 font 키('system'만 존재) 하위 호환 — 신규는 영역별 3종(fonts.title/body/aux)
       font: (p.theme && p.theme.font) === 'system' ? 'system' : 'gmarket',
+      fonts: {
+        title: normFont(p.theme && p.theme.fonts && p.theme.fonts.title || (p.theme && p.theme.font === 'system' ? 'system' : 'gmarket')),
+        body: normFont(p.theme && p.theme.fonts && p.theme.fonts.body || (p.theme && p.theme.font === 'system' ? 'system' : 'gmarket')),
+        aux: normFont(p.theme && p.theme.fonts && p.theme.fonts.aux || (p.theme && p.theme.font === 'system' ? 'system' : 'gmarket')),
+      },
       copyTone: ['feature', 'empath', 'premium'].includes(p.theme && p.theme.copyTone) ? p.theme.copyTone : 'feature',
     },
     width: clampW(p.width),
